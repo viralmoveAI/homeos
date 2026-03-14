@@ -4,10 +4,13 @@ import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const ProviderScope(child: HomeOSApp()));
 }
 

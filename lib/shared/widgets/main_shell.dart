@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
+import '../../features/family_hub/presentation/widgets/chat_groups_sheet.dart';
+import '../../features/vault/presentation/widgets/add_document_bottom_sheet.dart';
 
 class MainShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -13,17 +15,20 @@ class MainShell extends StatelessWidget {
       extendBody: true,
       backgroundColor: Colors.transparent,
       body: navigationShell,
+      floatingActionButton: _buildContextualFAB(context),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: Container(
         padding: const EdgeInsets.only(top: 12, bottom: 24, left: 8, right: 8),
         decoration: BoxDecoration(
-          color: AppColors.surfaceWhite.withOpacity(0.95),
+          color: Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 20,
-              offset: const Offset(0, -5),
-            )
+              offset: const Offset(0, -8),
+              spreadRadius: 2,
+            ),
           ],
         ),
         child: Row(
@@ -80,6 +85,132 @@ class MainShell extends StatelessWidget {
       index,
       initialLocation: index == navigationShell.currentIndex,
     );
+  }
+
+  Widget? _buildContextualFAB(BuildContext context) {
+    if (navigationShell.currentIndex == 0) {
+      // AI Assistant FAB for Home
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 84.0),
+        child: Container(
+          height: 64,
+          width: 64,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppColors.accentPurple, Color(0xFF7B52FF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.accentPurple.withOpacity(0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(22),
+              onTap: () => context.push('/ai-assistant'),
+              child: const Icon(
+                Icons.smart_toy_rounded,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+          ),
+        ),
+      );
+    } else if (navigationShell.currentIndex == 1) {
+      // Family Hub FAB
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 84.0),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF25D366).withOpacity(0.5),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: FloatingActionButton(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            onPressed: () => showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useRootNavigator: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const ChatGroupsSheet(),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Image.asset(
+                'assets/images/chat_icon_3d.png',
+                width: 32,
+                height: 32,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+      );
+    } else if (navigationShell.currentIndex == 3) {
+      // Digital Vault FAB
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 84.0),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppColors.primaryBlue, Color(0xFF4A80FF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryBlue.withOpacity(0.5),
+                blurRadius: 25,
+                spreadRadius: 2,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: FloatingActionButton.extended(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            onPressed: () => showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useRootNavigator: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => const AddDocumentBottomSheet(),
+            ),
+            icon: const Icon(Icons.add_rounded, color: Colors.white),
+            label: const Text(
+              'Add Document',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return null;
   }
 }
 
@@ -145,4 +276,3 @@ class _CustomNavItem extends StatelessWidget {
     );
   }
 }
-
