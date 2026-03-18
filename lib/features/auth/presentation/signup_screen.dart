@@ -211,10 +211,12 @@ class _SignupScreenState extends State<SignupScreen>
                                     icon: Icons.email_outlined,
                                     keyboardType: TextInputType.emailAddress,
                                     validator: (value) {
-                                      if (value == null || value.isEmpty)
+                                      if (value == null || value.isEmpty) {
                                         return 'Email is required';
-                                      if (!value.contains('@'))
+                                      }
+                                      if (!value.contains('@')) {
                                         return 'Enter a valid email';
+                                      }
                                       return null;
                                     },
                                   ),
@@ -261,8 +263,9 @@ class _SignupScreenState extends State<SignupScreen>
                                       ),
                                     ),
                                     validator: (value) {
-                                      if (value != _passwordController.text)
+                                      if (value != _passwordController.text) {
                                         return 'Passwords do not match';
+                                      }
                                       return null;
                                     },
                                   ),

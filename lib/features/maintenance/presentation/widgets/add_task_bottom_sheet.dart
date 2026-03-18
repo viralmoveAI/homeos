@@ -134,7 +134,7 @@ class _AddTaskBottomSheetState extends ConsumerState<AddTaskBottomSheet> {
                         const Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<MaintenanceCategory>(
-                          value: _category,
+                          initialValue: _category,
                           items: MaintenanceCategory.values.map((c) {
                             return DropdownMenuItem(value: c, child: Text(c.displayName));
                           }).toList(),
@@ -152,7 +152,7 @@ class _AddTaskBottomSheetState extends ConsumerState<AddTaskBottomSheet> {
                         const Text('Priority', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<MaintenancePriority>(
-                          value: _priority,
+                          initialValue: _priority,
                           items: MaintenancePriority.values.map((p) {
                             return DropdownMenuItem(value: p, child: Text(p.displayName));
                           }).toList(),
@@ -202,7 +202,7 @@ class _AddTaskBottomSheetState extends ConsumerState<AddTaskBottomSheet> {
                         const Text('Season', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String?>(
-                          value: _season,
+                          initialValue: _season,
                           items: [null, 'Spring', 'Summer', 'Autumn', 'Winter'].map((s) {
                             return DropdownMenuItem(value: s, child: Text(s ?? 'No season'));
                           }).toList(),

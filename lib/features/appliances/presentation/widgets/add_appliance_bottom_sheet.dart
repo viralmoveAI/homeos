@@ -139,7 +139,7 @@ class _AddApplianceBottomSheetState extends ConsumerState<AddApplianceBottomShee
               const Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
               const SizedBox(height: 8),
               DropdownButtonFormField<ApplianceCategory>(
-                value: _category,
+                initialValue: _category,
                 items: ApplianceCategory.values.map((c) {
                   return DropdownMenuItem(value: c, child: Text(c.displayName));
                 }).toList(),

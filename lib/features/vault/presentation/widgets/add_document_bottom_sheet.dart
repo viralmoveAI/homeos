@@ -151,7 +151,8 @@ class _AddDocumentBottomSheetState extends ConsumerState<AddDocumentBottomSheet>
                         const Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<VaultCategory>(
-                          value: _category,
+                          isExpanded: true,
+                          initialValue: _category,
                           items: VaultCategory.values.map((c) {
                             return DropdownMenuItem(value: c, child: Text(c.displayName, style: const TextStyle(fontSize: 13)));
                           }).toList(),
@@ -169,7 +170,8 @@ class _AddDocumentBottomSheetState extends ConsumerState<AddDocumentBottomSheet>
                         const Text('File Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<FileType>(
-                          value: _fileType,
+                          isExpanded: true,
+                          initialValue: _fileType,
                           items: FileType.values.map((p) {
                             return DropdownMenuItem(value: p, child: Text(p.displayName));
                           }).toList(),

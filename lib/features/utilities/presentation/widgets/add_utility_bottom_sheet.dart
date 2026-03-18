@@ -129,7 +129,7 @@ class _AddUtilityBottomSheetState extends ConsumerState<AddUtilityBottomSheet> {
                       children: [
                         _buildLabel('Type'),
                         DropdownButtonFormField<String>(
-                          value: _type,
+                          initialValue: _type,
                           items: _types.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                           onChanged: (v) => setState(() => _type = v!),
                           decoration: InputDecoration(

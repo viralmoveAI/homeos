@@ -669,10 +669,12 @@ class _GroupInfoSheetState extends ConsumerState<_GroupInfoSheet> {
                   .doc(widget.groupId)
                   .get(),
               builder: (context, groupSnap) {
-                if (groupSnap.connectionState == ConnectionState.waiting)
+                if (groupSnap.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
-                if (!groupSnap.hasData || groupSnap.data?.data() == null)
+                }
+                if (!groupSnap.hasData || groupSnap.data?.data() == null) {
                   return const Text('Group not found');
+                }
 
                 final data = groupSnap.data!.data() as Map<String, dynamic>;
                 final members = List<String>.from(data['members'] ?? []);
@@ -680,8 +682,9 @@ class _GroupInfoSheetState extends ConsumerState<_GroupInfoSheet> {
                 return StreamBuilder<QuerySnapshot>(
                   stream: _dbService.getFamilyMembers(),
                   builder: (context, usersSnap) {
-                    if (usersSnap.connectionState == ConnectionState.waiting)
+                    if (usersSnap.connectionState == ConnectionState.waiting) {
                       return const SizedBox();
+                    }
                     if (!usersSnap.hasData) return const SizedBox();
 
                     final userDocs = usersSnap.data!.docs

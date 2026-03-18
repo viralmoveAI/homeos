@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -359,7 +358,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: DropdownButtonFormField<String>(
-        value: _role,
+        initialValue: _role,
         decoration: InputDecoration(
           labelText: 'Household Role',
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -385,7 +384,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       value: value,
       onChanged: onChanged,
       contentPadding: EdgeInsets.zero,
-      activeColor: AppColors.primaryBlue,
+      activeThumbColor: AppColors.primaryBlue,
     );
   }
 

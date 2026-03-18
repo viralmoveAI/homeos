@@ -674,7 +674,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Image.network(
@@ -684,16 +684,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 5),
           const Text(
             'AC service scheduled for tomorrow!',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: 6),
           Row(
             children: [
               Icon(

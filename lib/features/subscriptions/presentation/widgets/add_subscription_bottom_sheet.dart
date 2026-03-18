@@ -129,7 +129,7 @@ class _AddSubscriptionBottomSheetState extends ConsumerState<AddSubscriptionBott
                       children: [
                         _buildLabel('Category'),
                         DropdownButtonFormField<String>(
-                          value: _category,
+                          initialValue: _category,
                           items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                           onChanged: (v) => setState(() => _category = v!),
                           decoration: InputDecoration(
@@ -168,7 +168,7 @@ class _AddSubscriptionBottomSheetState extends ConsumerState<AddSubscriptionBott
                       children: [
                         _buildLabel('Billing Cycle'),
                         DropdownButtonFormField<String>(
-                          value: _billingCycle,
+                          initialValue: _billingCycle,
                           items: _billingCycles.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                           onChanged: (v) => setState(() => _billingCycle = v!),
                           decoration: InputDecoration(

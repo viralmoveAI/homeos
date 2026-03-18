@@ -19,41 +19,46 @@ class SubscriptionScreen extends ConsumerWidget {
     return AnimatedGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
+       
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
+          centerTitle: true, // Forces consistent look on Android/iOS
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.textPrimary),
+            icon: const Icon(
+              Icons.arrow_back_ios_rounded,
+              color: AppColors.textPrimary,
+            ),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: const Text('Subscriptions', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Row(
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => _showSmartCategorize(context),
-                    icon: const Icon(Icons.auto_awesome, size: 16),
-                    label: const Text('Smart Categorize'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textPrimary,
-                      side: BorderSide(color: AppColors.textHint.withOpacity(0.3)),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: () => _showAddSubscription(context),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Subscription'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
+          title: const Text(
+            'Subscriptions',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.bold,
             ),
+          ),
+          actions: [
+            // Use IconButtons to save space and prevent title overlapping
+            IconButton(
+              icon: const Icon(
+                Icons.auto_awesome,
+                color: AppColors.textPrimary,
+              ),
+              onPressed: () => _showSmartCategorize(context),
+              tooltip: 'Smart Categorize',
+            ),
+            
+            IconButton(
+              icon: const Icon(
+                Icons.add_circle_outline,
+                color: Colors.blueAccent,
+                size: 30,
+              ),
+              onPressed: () => _showAddSubscription(context),
+              tooltip: 'Add Subscription',
+            ),
+            const SizedBox(width: 8),
           ],
         ),
         body: subscriptionsAsync.when(
@@ -62,22 +67,42 @@ class SubscriptionScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Track your recurring expenses', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                const Text(
+                  'Track your recurring expenses',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 16,
+                  ),
+                ),
                 const SizedBox(height: 24),
                 _buildSummaryCards(subscriptions),
                 const SizedBox(height: 32),
                 if (subscriptions.where((s) => s.isActive).isNotEmpty) ...[
-                  Text('Active (${subscriptions.where((s) => s.isActive).length})',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  Text(
+                    'Active (${subscriptions.where((s) => s.isActive).length})',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  ...subscriptions.where((s) => s.isActive).map((sub) => _buildSubscriptionCard(context, ref, sub)),
+                  ...subscriptions
+                      .where((s) => s.isActive)
+                      .map((sub) => _buildSubscriptionCard(context, ref, sub)),
                 ],
                 const SizedBox(height: 32),
                 if (subscriptions.where((s) => !s.isActive).isNotEmpty) ...[
-                  Text('Inactive (${subscriptions.where((s) => !s.isActive).length})',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  Text(
+                    'Inactive (${subscriptions.where((s) => !s.isActive).length})',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  ...subscriptions.where((s) => !s.isActive).map((sub) => _buildSubscriptionCard(context, ref, sub)),
+                  ...subscriptions
+                      .where((s) => !s.isActive)
+                      .map((sub) => _buildSubscriptionCard(context, ref, sub)),
                 ],
                 if (subscriptions.isEmpty) _buildEmptyState(),
               ],
@@ -91,45 +116,95 @@ class SubscriptionScreen extends ConsumerWidget {
   }
 
   Widget _buildSummaryCards(List<Subscription> subs) {
-    final monthlyTotal = subs.where((s) => s.isActive).fold(0.0, (sum, item) => sum + item.amount);
+    final monthlyTotal = subs
+        .where((s) => s.isActive)
+        .fold(0.0, (sum, item) => sum + item.amount);
     final yearlyTotal = monthlyTotal * 12;
 
     return Row(
+      // mainAxisAlignment ensures space is distributed evenly if needed
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(child: _buildSummaryCard('\$${monthlyTotal.toStringAsFixed(2)}', 'Monthly Total', Icons.attach_money, Colors.green)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildSummaryCard('\$${yearlyTotal.toStringAsFixed(0)}', 'Yearly Total', Icons.trending_up, Colors.orange)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildSummaryCard('${subs.where((s) => s.isActive).length}', 'Active Subscriptions', Icons.credit_card, Colors.blue)),
+        Expanded(
+          child: _buildSummaryCard(
+            '\$${monthlyTotal.toStringAsFixed(2)}',
+            'Monthly', // Shortened labels help prevent overflow on smaller screens
+            Icons.attach_money,
+            Colors.green,
+          ),
+        ),
+        const SizedBox(width: 12), // Reduced spacing slightly for better fit
+        Expanded(
+          child: _buildSummaryCard(
+            '\$${yearlyTotal.toStringAsFixed(0)}',
+            'Yearly',
+            Icons.trending_up,
+            Colors.orange,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildSummaryCard(
+            '${subs.where((s) => s.isActive).length}',
+            'Active',
+            Icons.credit_card,
+            Colors.blue,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSummaryCard(String value, String label, IconData icon, Color color) {
+  Widget _buildSummaryCard(
+    String value,
+    String label,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      // Ensure the container expands to fill the height of the row's tallest item
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: color, size: 20),
+          Icon(icon, color: color, size: 22),
+          const SizedBox(height: 8),
+          FittedBox(
+            // IMPORTANT: Scales text down if the number is too large for the card
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize:
+                    18, // Reduced font size for better fit in 3-column layout
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
-          Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-          Text(label, style: TextStyle(fontSize: 12, color: AppColors.textSecondary.withOpacity(0.7))),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.textSecondary.withOpacity(0.7),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSubscriptionCard(BuildContext context, WidgetRef ref, Subscription sub) {
+  Widget _buildSubscriptionCard(
+    BuildContext context,
+    WidgetRef ref,
+    Subscription sub,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -151,7 +226,10 @@ class SubscriptionScreen extends ConsumerWidget {
                     color: Colors.blueAccent.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.credit_card, color: Colors.blueAccent),
+                  child: const Icon(
+                    Icons.credit_card,
+                    color: Colors.blueAccent,
+                  ),
                 ),
                 const SizedBox(width: 20),
                 Expanded(
@@ -160,20 +238,47 @@ class SubscriptionScreen extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Text(sub.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text(
+                            sub.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                           const SizedBox(width: 8),
-                          Text(sub.category, style: TextStyle(color: AppColors.textSecondary.withOpacity(0.7), fontSize: 12)),
+                          Text(
+                            sub.category,
+                            style: TextStyle(
+                              color: AppColors.textSecondary.withOpacity(0.7),
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      Text('\$${sub.amount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                      Text(
+                        '\$${sub.amount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.calendar_today, size: 12, color: AppColors.textSecondary.withOpacity(0.6)),
+                          Icon(
+                            Icons.calendar_today,
+                            size: 12,
+                            color: AppColors.textSecondary.withOpacity(0.6),
+                          ),
                           const SizedBox(width: 4),
-                          Text('Next billing: ${DateFormat('M/d/yyyy').format(sub.nextRenewalDate)}',
-                              style: TextStyle(color: AppColors.textSecondary.withOpacity(0.6), fontSize: 12)),
+                          Text(
+                            'Next billing: ${DateFormat('M/d/yyyy').format(sub.nextRenewalDate)}',
+                            style: TextStyle(
+                              color: AppColors.textSecondary.withOpacity(0.6),
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -189,16 +294,35 @@ class SubscriptionScreen extends ConsumerWidget {
                           icon: const Icon(Icons.edit_outlined, size: 20),
                         ),
                         IconButton(
-                          onPressed: () => ref.read(subscriptionNotifierProvider.notifier).deleteSubscription(sub.id),
-                          icon: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+                          onPressed: () => ref
+                              .read(subscriptionNotifierProvider.notifier)
+                              .deleteSubscription(sub.id),
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            size: 20,
+                            color: Colors.redAccent,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: AppColors.backgroundLight, borderRadius: BorderRadius.circular(8)),
-                      child: Text(sub.billingCycle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textHint)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.backgroundLight,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        sub.billingCycle,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: AppColors.textHint,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -216,28 +340,39 @@ class SubscriptionScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 40),
-          Icon(Icons.sync_rounded, size: 80, color: AppColors.textHint.withOpacity(0.3)),
+          Icon(
+            Icons.sync_rounded,
+            size: 80,
+            color: AppColors.textHint.withOpacity(0.3),
+          ),
           const SizedBox(height: 20),
           Text(
             'No subscriptions yet',
-            style: TextStyle(color: AppColors.textSecondary.withOpacity(0.7), fontSize: 18),
+            style: TextStyle(
+              color: AppColors.textSecondary.withOpacity(0.7),
+              fontSize: 18,
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showAddSubscription(BuildContext context, [Subscription? subscription]) {
+  void _showAddSubscription(
+    BuildContext context, [
+    Subscription? subscription,
+  ]) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => AddSubscriptionBottomSheet(subscription: subscription),
+      builder: (context) =>
+          AddSubscriptionBottomSheet(subscription: subscription),
     );
   }
 
   void _showSmartCategorize(BuildContext context) {
-     showDialog(
+    showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
@@ -256,16 +391,23 @@ class SubscriptionScreen extends ConsumerWidget {
             TextField(
               decoration: InputDecoration(
                 hintText: 'e.g., Netflix streaming service \$15/month',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent.withOpacity(0.5)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent.withOpacity(0.5),
+            ),
             child: const Text('Categorize'),
           ),
         ],
