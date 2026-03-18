@@ -25,47 +25,23 @@ class _ApplianceScreenState extends ConsumerState<ApplianceScreen> {
     return AnimatedGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text('Appliances', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: ElevatedButton.icon(
-                onPressed: () => _showAddAppliance(context),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add Appliance'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-          ],
-        ),
         body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
-              child: Text(
-                'Manage and track all your home appliances',
-                style: TextStyle(color: AppColors.textSecondary.withOpacity(0.8), fontSize: 15),
-              ),
-            ),
-            _buildSearchBar(),
-            _buildCategoryFilters(),
+            _buildModernHeader(),
             Expanded(
               child: appliancesAsync.when(
                 data: (appliances) {
                   final filtered = appliances.where((a) {
-                    final matchesSearch = a.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                        a.brand.toLowerCase().contains(_searchQuery.toLowerCase());
-                    final matchesCategory = _selectedCategory == null || a.category == _selectedCategory;
+                    final matchesSearch =
+                        a.name.toLowerCase().contains(
+                          _searchQuery.toLowerCase(),
+                        ) ||
+                        a.brand.toLowerCase().contains(
+                          _searchQuery.toLowerCase(),
+                        );
+                    final matchesCategory =
+                        _selectedCategory == null ||
+                        a.category == _selectedCategory;
                     return matchesSearch && matchesCategory;
                   }).toList();
 
@@ -75,12 +51,13 @@ class _ApplianceScreenState extends ConsumerState<ApplianceScreen> {
 
                   return GridView.builder(
                     padding: const EdgeInsets.all(20),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.85,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.85,
+                        ),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       return _buildApplianceCard(filtered[index]);
@@ -97,23 +74,138 @@ class _ApplianceScreenState extends ConsumerState<ApplianceScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
-        ),
-        child: TextField(
-          onChanged: (v) => setState(() => _searchQuery = v),
-          decoration: const InputDecoration(
-            hintText: 'Search appliances...',
-            prefixIcon: Icon(Icons.search, color: AppColors.textHint),
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+  Widget _buildModernHeader() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFC1F1E0).withOpacity(0.4),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.textPrimary.withOpacity(0.05),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: AppColors.textPrimary,
+                            size: 20,
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Appliances',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const Spacer(),
+                      ElevatedButton.icon(
+                        onPressed: () => _showAddAppliance(context),
+                        icon: const Icon(
+                          Icons.add,
+                          size: 18,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Add Appliance',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 52.0, top: 2),
+                    child: Text(
+                      'Manage and track all your home appliances',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildSearchBar(),
+                  const SizedBox(height: 16),
+                  _buildCategoryFilters(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        onChanged: (v) => setState(() => _searchQuery = v),
+        decoration: const InputDecoration(
+          hintText: 'Search appliances...',
+          hintStyle: TextStyle(
+            color: AppColors.textHint,
+            fontWeight: FontWeight.w500,
+          ),
+          prefixIcon: Icon(Icons.search_rounded, color: AppColors.textHint),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
       ),
     );
@@ -122,11 +214,13 @@ class _ApplianceScreenState extends ConsumerState<ApplianceScreen> {
   Widget _buildCategoryFilters() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      physics: const BouncingScrollPhysics(),
       child: Row(
         children: [
           _buildFilterChip(null, 'All Categories'),
-          ...ApplianceCategory.values.map((c) => _buildFilterChip(c, c.displayName)),
+          ...ApplianceCategory.values.map(
+            (c) => _buildFilterChip(c, c.displayName),
+          ),
         ],
       ),
     );
@@ -135,26 +229,63 @@ class _ApplianceScreenState extends ConsumerState<ApplianceScreen> {
   Widget _buildFilterChip(ApplianceCategory? category, String label) {
     final isSelected = _selectedCategory == category;
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
-      child: FilterChip(
-        selected: isSelected,
-        label: Text(label),
-        onSelected: (v) => setState(() => _selectedCategory = v ? category : null),
-        backgroundColor: Colors.white.withOpacity(0.5),
-        selectedColor: AppColors.primaryBlue.withOpacity(0.2),
-        checkmarkColor: AppColors.primaryBlue,
-        labelStyle: TextStyle(
-          color: isSelected ? AppColors.primaryBlue : AppColors.textSecondary,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          fontSize: 13,
+      padding: const EdgeInsets.only(right: 12.0),
+      child: GestureDetector(
+        onTap: () =>
+            setState(() => _selectedCategory = isSelected ? null : category),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primaryBlue.withOpacity(0.15)
+                : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.primaryBlue.withOpacity(0.3)
+                  : Colors.white,
+              width: 1.5,
+            ),
+            boxShadow: [
+              if (!isSelected)
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+            ],
+          ),
+          child: Row(
+            children: [
+              if (isSelected) ...[
+                const Icon(
+                  Icons.check_rounded,
+                  size: 16,
+                  color: AppColors.primaryBlue,
+                ),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected
+                      ? AppColors.primaryBlue
+                      : AppColors.textSecondary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide.none),
       ),
     );
   }
 
   Widget _buildApplianceCard(Appliance appliance) {
-    final isWarrantyActive = appliance.warrantyExpiry != null && appliance.warrantyExpiry!.isAfter(DateTime.now());
+    final isWarrantyActive =
+        appliance.warrantyExpiry != null &&
+        appliance.warrantyExpiry!.isAfter(DateTime.now());
 
     return Container(
       decoration: BoxDecoration(
@@ -187,17 +318,30 @@ class _ApplianceScreenState extends ConsumerState<ApplianceScreen> {
                         color: AppColors.primaryBlue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(_getCategoryIcon(appliance.category), size: 20, color: AppColors.primaryBlue),
+                      child: Icon(
+                        _getCategoryIcon(appliance.category),
+                        size: 20,
+                        color: AppColors.primaryBlue,
+                      ),
                     ),
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
-                          onPressed: () => _showEditAppliance(context, appliance),
+                          icon: const Icon(
+                            Icons.edit_outlined,
+                            size: 18,
+                            color: AppColors.textSecondary,
+                          ),
+                          onPressed: () =>
+                              _showEditAppliance(context, appliance),
                           visualDensity: VisualDensity.compact,
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                          icon: const Icon(
+                            Icons.delete_outline_rounded,
+                            size: 18,
+                            color: Colors.redAccent,
+                          ),
                           onPressed: () => _deleteAppliance(appliance),
                           visualDensity: VisualDensity.compact,
                         ),
@@ -208,22 +352,39 @@ class _ApplianceScreenState extends ConsumerState<ApplianceScreen> {
                 const SizedBox(height: 12),
                 Text(
                   appliance.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: AppColors.textPrimary,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                  Text(
-                    'Brand: ${appliance.brand}',
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary.withOpacity(0.7)),
-                    maxLines: 1,
+                Text(
+                  'Brand: ${appliance.brand}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary.withOpacity(0.7),
                   ),
+                  maxLines: 1,
+                ),
                 const Spacer(),
                 if (appliance.location.isNotEmpty)
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textSecondary),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 12,
+                        color: AppColors.textSecondary,
+                      ),
                       const SizedBox(width: 4),
-                      Text(appliance.location, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      Text(
+                        appliance.location,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 const SizedBox(height: 4),
@@ -238,14 +399,21 @@ class _ApplianceScreenState extends ConsumerState<ApplianceScreen> {
                   ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.backgroundLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     appliance.category.displayName,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textHint),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textHint,
+                    ),
                   ),
                 ),
               ],
@@ -258,12 +426,18 @@ class _ApplianceScreenState extends ConsumerState<ApplianceScreen> {
 
   IconData _getCategoryIcon(ApplianceCategory category) {
     switch (category) {
-      case ApplianceCategory.kitchen: return Icons.kitchen;
-      case ApplianceCategory.laundry: return Icons.local_laundry_service;
-      case ApplianceCategory.hvac: return Icons.ac_unit;
-      case ApplianceCategory.entertainment: return Icons.tv;
-      case ApplianceCategory.cleaning: return Icons.cleaning_services;
-      case ApplianceCategory.other: return Icons.settings_input_component;
+      case ApplianceCategory.kitchen:
+        return Icons.kitchen;
+      case ApplianceCategory.laundry:
+        return Icons.local_laundry_service;
+      case ApplianceCategory.hvac:
+        return Icons.ac_unit;
+      case ApplianceCategory.entertainment:
+        return Icons.tv;
+      case ApplianceCategory.cleaning:
+        return Icons.cleaning_services;
+      case ApplianceCategory.other:
+        return Icons.settings_input_component;
     }
   }
 
@@ -272,11 +446,21 @@ class _ApplianceScreenState extends ConsumerState<ApplianceScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.kitchen_outlined, size: 80, color: AppColors.textHint.withOpacity(0.3)),
+          Icon(
+            Icons.kitchen_outlined,
+            size: 80,
+            color: AppColors.textHint.withOpacity(0.3),
+          ),
           const SizedBox(height: 20),
-          const Text('No appliances found', style: TextStyle(color: AppColors.textHint, fontSize: 18)),
+          const Text(
+            'No appliances found',
+            style: TextStyle(color: AppColors.textHint, fontSize: 18),
+          ),
           const SizedBox(height: 12),
-          ElevatedButton(onPressed: () => _showAddAppliance(context), child: const Text('Add your first appliance')),
+          ElevatedButton(
+            onPressed: () => _showAddAppliance(context),
+            child: const Text('Add your first appliance'),
+          ),
         ],
       ),
     );
@@ -309,10 +493,15 @@ class _ApplianceScreenState extends ConsumerState<ApplianceScreen> {
         title: const Text('Delete Appliance'),
         content: Text('Are you sure you want to delete ${appliance.name}?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () {
-              ref.read(applianceNotifierProvider.notifier).deleteAppliance(appliance.id);
+              ref
+                  .read(applianceNotifierProvider.notifier)
+                  .deleteAppliance(appliance.id);
               Navigator.pop(context);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),

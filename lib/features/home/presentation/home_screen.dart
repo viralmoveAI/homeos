@@ -6,6 +6,8 @@ import '../../../shared/widgets/animated_gradient_background.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/user_avatar.dart';
 import '../../../core/providers/auth_providers.dart';
+import '../../family_hub/presentation/providers/family_hub_providers.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -70,12 +72,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: FadeTransition(
                     opacity: _fadeAnimation,
                     child: _buildHeader(),
                   ),
                 ),
+                const SizedBox(height: 40),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: _buildFamilyBar(),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -123,6 +134,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               position: _slideAnimations[4],
                               child: _buildSectionTitle(
                                 'Family Feed & Memories',
+                                onViewAll: () => context.push('/memories'),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -147,6 +159,284 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     if (hour >= 5 && hour < 12) return 'Good Morning,';
     if (hour >= 12 && hour < 20) return 'Hello,';
     return 'Good Night,';
+  }
+
+  Widget _buildFamilyBar() {
+    final familyMembers = ref.watch(familyMembersProvider).value ?? [];
+    final currentUser = ref.watch(userProfileProvider).value;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(50),
+        border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 15,
+            spreadRadius: -2,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(50),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            child: Row(
+              children: [
+                if (currentUser != null)
+                  _buildAvatarItem(
+                    name: currentUser['firstName'] ?? 'Me',
+                    imageUrl: currentUser['photoUrl'],
+                    isCurrentUser: true,
+                  ),
+                ...familyMembers.map(
+                  (member) => _buildAvatarItem(
+                    name: member['name'] ?? member['firstName'] ?? 'Member',
+                    imageUrl: member['photoUrl'],
+                    isCurrentUser: false,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: _showInviteDialog,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.add,
+                      color: AppColors.primaryBlue,
+                      size: 28,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarItem({
+    required String name,
+    String? imageUrl,
+    bool isCurrentUser = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12.0, left: 12.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isCurrentUser
+                        ? AppColors.successGreen
+                        : Colors.white,
+                    width: 2,
+                  ),
+                ),
+                child: UserAvatar(name: name, imageUrl: imageUrl, radius: 22),
+              ),
+              if (isCurrentUser)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: AppColors.successGreen,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      size: 12,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            name,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showInviteDialog() {
+    final nameController = TextEditingController();
+    final emailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.transparent,
+        contentPadding: EdgeInsets.zero,
+        content: Container(
+          width: MediaQuery.of(context).size.width * 0.85,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 30,
+                spreadRadius: 5,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Invite Family User',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Add a new member to your Family Hub',
+                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  prefixIcon: const Icon(Icons.person_outline),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (nameController.text.isEmpty ||
+                            emailController.text.isEmpty) {
+                          Fluttertoast.showToast(
+                            msg: "Please fill all fields",
+                            backgroundColor: AppColors.errorRed,
+                            textColor: Colors.white,
+                          );
+                          return;
+                        }
+
+                        // Close dialog
+                        Navigator.pop(context);
+
+                        // Show loading
+                        Fluttertoast.showToast(
+                          msg: "Sending invitation...",
+                          backgroundColor: AppColors.infoBlue,
+                          textColor: Colors.white,
+                        );
+
+                        try {
+                          await ref
+                              .read(authServiceProvider)
+                              .inviteFamilyMember(
+                                name: nameController.text.trim(),
+                                email: emailController.text.trim(),
+                              );
+
+                          Fluttertoast.showToast(
+                            msg: "Invitation sent successfully!",
+                            backgroundColor: AppColors.successGreen,
+                            textColor: Colors.white,
+                          );
+                        } catch (e) {
+                          Fluttertoast.showToast(
+                            msg: "Failed to send invitation: $e",
+                            backgroundColor: AppColors.errorRed,
+                            textColor: Colors.white,
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryBlue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text('Send Invite'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildHeader() {
@@ -272,14 +562,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: AppColors.textPrimary,
-      ),
+  Widget _buildSectionTitle(String title, {VoidCallback? onViewAll}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        if (onViewAll != null)
+          TextButton(
+            onPressed: onViewAll,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'View All',
+                  style: TextStyle(
+                    color: AppColors.primaryBlue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, color: AppColors.primaryBlue),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -404,43 +717,63 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Widget _buildDinnerPoll() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.secondaryMint.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.transparent,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'What\'s for dinner tonight?',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+    return GestureDetector(
+      onTap: () => context.push('/meals'),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: AppColors.cardGradient,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.secondaryMint.withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.transparent,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'What\'s for dinner tonight?',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'View All',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 16),
-                _buildPollOption('Pizza 🍕', true),
-                const SizedBox(height: 8),
-                _buildPollOption('Spaghetti 🍝', false),
-                const SizedBox(height: 8),
-                _buildPollOption('Chicken & Rice 🍗', false),
-              ],
+                  const SizedBox(height: 16),
+                  _buildPollOption('Pizza 🍕', true),
+                  const SizedBox(height: 8),
+                  _buildPollOption('Spaghetti 🍝', false),
+                  const SizedBox(height: 8),
+                  _buildPollOption('Chicken & Rice 🍗', false),
+                ],
+              ),
             ),
           ),
         ),
@@ -570,7 +903,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   Widget _buildFeedSection() {
     return SizedBox(
-      height: 200,
+      height: 250,
       child: SlideTransition(
         position: _slideAnimations[5],
         child: ListView(

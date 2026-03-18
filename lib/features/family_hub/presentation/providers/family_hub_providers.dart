@@ -21,3 +21,19 @@ final familyPostsProvider = StreamProvider<QuerySnapshot>((ref) {
 final familyChatGroupsProvider = StreamProvider<QuerySnapshot>((ref) {
   return ref.watch(familyHubServiceProvider).chatGroupsStream();
 });
+
+final familyMembersProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
+  final targetUid = ref.watch(effectiveUidProvider);
+  if (targetUid == null) return Stream.value([]);
+
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(targetUid)
+      .collection('family_members')
+      .snapshots()
+      .map((snapshot) {
+        return snapshot.docs
+            .map((doc) => {'uid': doc.id, ...doc.data()})
+            .toList();
+      });
+});

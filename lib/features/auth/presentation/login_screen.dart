@@ -83,37 +83,44 @@ class _LoginScreenState extends State<LoginScreen>
                       // Logo Box with Glow
                       Center(
                         child: Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.surfaceWhite.withOpacity(0.9),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primaryBlue.withOpacity(0.3),
-                                blurRadius: 30,
-                                spreadRadius: 5,
-                              ),
-                            ],
+                            borderRadius: BorderRadius.circular(28),
                           ),
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            height: 100,
-                            width: 100,
-                            fit: BoxFit.contain,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              height: 140,
+                              width: 140,
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 32),
 
                       // Title
-                      const Text(
-                        'Welcome to\nHomeOS',
+                      const Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Welcome to\n',
+                              style: TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                            TextSpan(
+                              text: 'HOMI',
+                              style: TextStyle(
+                                letterSpacing: 8.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.w800,
                           color: AppColors.textPrimary,
-                          letterSpacing: -0.5,
                           height: 1.1,
                         ),
                       ),

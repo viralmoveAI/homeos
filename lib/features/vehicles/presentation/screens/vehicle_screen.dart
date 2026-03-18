@@ -18,38 +18,9 @@ class VehicleScreen extends ConsumerWidget {
     return AnimatedGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text('Vehicles', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: ElevatedButton.icon(
-                onPressed: () => _showAddVehicle(context),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add Vehicle'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-          ],
-        ),
         body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
-              child: Text(
-                'Manage your vehicles and service schedules',
-                style: TextStyle(color: AppColors.textSecondary.withOpacity(0.8), fontSize: 15),
-              ),
-            ),
+            _buildModernHeader(context),
             Expanded(
               child: vehiclesAsync.when(
                 data: (vehicles) {
@@ -75,8 +46,117 @@ class VehicleScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildVehicleCard(BuildContext context, WidgetRef ref, Vehicle vehicle) {
-    final isServiceDue = vehicle.nextServiceDate != null && vehicle.nextServiceDate!.isBefore(DateTime.now());
+  Widget _buildModernHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFC1F1E0).withOpacity(0.4),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.textPrimary.withOpacity(0.05),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: AppColors.textPrimary,
+                            size: 20,
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Vehicles',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const Spacer(),
+                      ElevatedButton.icon(
+                        onPressed: () => _showAddVehicle(context),
+                        icon: const Icon(
+                          Icons.add,
+                          size: 18,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Add Vehicle',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 52.0, top: 2),
+                    child: Text(
+                      'Manage your vehicles and service schedules',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVehicleCard(
+    BuildContext context,
+    WidgetRef ref,
+    Vehicle vehicle,
+  ) {
+    final isServiceDue =
+        vehicle.nextServiceDate != null &&
+        vehicle.nextServiceDate!.isBefore(DateTime.now());
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -109,7 +189,11 @@ class VehicleScreen extends ConsumerWidget {
                         color: AppColors.primaryBlue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(Icons.directions_car_rounded, size: 24, color: AppColors.primaryBlue),
+                      child: const Icon(
+                        Icons.directions_car_rounded,
+                        size: 24,
+                        color: AppColors.primaryBlue,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -118,12 +202,20 @@ class VehicleScreen extends ConsumerWidget {
                         children: [
                           Text(
                             vehicle.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppColors.textPrimary),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 17,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                           if (vehicle.make != null || vehicle.model != null)
                             Text(
-                              '${vehicle.year ?? ''} ${vehicle.make ?? ''} ${vehicle.model ?? ''}'.trim(),
-                              style: TextStyle(fontSize: 13, color: AppColors.textSecondary.withOpacity(0.7)),
+                              '${vehicle.year ?? ''} ${vehicle.make ?? ''} ${vehicle.model ?? ''}'
+                                  .trim(),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary.withOpacity(0.7),
+                              ),
                             ),
                         ],
                       ),
@@ -131,12 +223,19 @@ class VehicleScreen extends ConsumerWidget {
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit_outlined, color: AppColors.textSecondary),
+                          icon: const Icon(
+                            Icons.edit_outlined,
+                            color: AppColors.textSecondary,
+                          ),
                           onPressed: () => _showEditVehicle(context, vehicle),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-                          onPressed: () => _deleteVehicle(context, ref, vehicle),
+                          icon: const Icon(
+                            Icons.delete_outline_rounded,
+                            color: Colors.redAccent,
+                          ),
+                          onPressed: () =>
+                              _deleteVehicle(context, ref, vehicle),
                         ),
                       ],
                     ),
@@ -144,9 +243,15 @@ class VehicleScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 if (vehicle.licensePlate != null)
-                  _buildDetailRow(Icons.pin_rounded, 'Plate: ${vehicle.licensePlate}'),
+                  _buildDetailRow(
+                    Icons.pin_rounded,
+                    'Plate: ${vehicle.licensePlate}',
+                  ),
                 if (vehicle.lastServiceDate != null)
-                  _buildDetailRow(Icons.build_circle_outlined, 'Last service: ${DateFormat('MM/dd/yyyy').format(vehicle.lastServiceDate!)}'),
+                  _buildDetailRow(
+                    Icons.build_circle_outlined,
+                    'Last service: ${DateFormat('MM/dd/yyyy').format(vehicle.lastServiceDate!)}',
+                  ),
                 if (vehicle.nextServiceDate != null)
                   _buildDetailRow(
                     Icons.event_note_rounded,
@@ -156,15 +261,24 @@ class VehicleScreen extends ConsumerWidget {
                 if (isServiceDue) ...[
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.redAccent.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                      border: Border.all(
+                        color: Colors.redAccent.withOpacity(0.3),
+                      ),
                     ),
                     child: const Text(
                       'Service Due',
-                      style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 12),
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -183,7 +297,13 @@ class VehicleScreen extends ConsumerWidget {
         children: [
           Icon(icon, size: 16, color: AppColors.textHint),
           const SizedBox(width: 8),
-          Text(text, style: TextStyle(fontSize: 13, color: textColor ?? AppColors.textSecondary)),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              color: textColor ?? AppColors.textSecondary,
+            ),
+          ),
         ],
       ),
     );
@@ -194,11 +314,21 @@ class VehicleScreen extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.directions_car_outlined, size: 80, color: AppColors.textHint.withOpacity(0.3)),
+          Icon(
+            Icons.directions_car_outlined,
+            size: 80,
+            color: AppColors.textHint.withOpacity(0.3),
+          ),
           const SizedBox(height: 20),
-          const Text('No vehicles added yet', style: TextStyle(color: AppColors.textHint, fontSize: 18)),
+          const Text(
+            'No vehicles added yet',
+            style: TextStyle(color: AppColors.textHint, fontSize: 18),
+          ),
           const SizedBox(height: 12),
-          ElevatedButton(onPressed: () => _showAddVehicle(context), child: const Text('Add your first vehicle')),
+          ElevatedButton(
+            onPressed: () => _showAddVehicle(context),
+            child: const Text('Add your first vehicle'),
+          ),
         ],
       ),
     );
@@ -231,10 +361,15 @@ class VehicleScreen extends ConsumerWidget {
         title: const Text('Delete Vehicle'),
         content: Text('Are you sure you want to delete ${vehicle.name}?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () {
-              ref.read(vehicleNotifierProvider.notifier).deleteVehicle(vehicle.id);
+              ref
+                  .read(vehicleNotifierProvider.notifier)
+                  .deleteVehicle(vehicle.id);
               Navigator.pop(context);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),

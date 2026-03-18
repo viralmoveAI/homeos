@@ -89,6 +89,19 @@ class ChatGroupsSheet extends ConsumerWidget {
                 if (snap.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
+                if (snap.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Text(
+                        'Error: ${snap.error}',
+                        style: const TextStyle(color: AppColors.errorRed),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }
+
                 if (!snap.hasData || snap.data!.docs.isEmpty) {
                   return Center(
                     child: Column(

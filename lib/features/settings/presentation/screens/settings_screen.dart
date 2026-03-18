@@ -17,151 +17,221 @@ class SettingsScreen extends StatelessWidget {
     return AnimatedGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text(
-            'Settings',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-            ),
-          ),
-          centerTitle: false,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 20),
-              child: const UserAvatar(name: 'Sarah', radius: 18),
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        body: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildModernCard(
-                context,
-                title: 'Appliances',
-                subtitle: 'Track warranty & service',
-                icon: Icons.kitchen_rounded,
-                color: Colors.blueAccent,
-                route: '/appliances',
-              ),
-              const SizedBox(height: 20),
-              _buildModernCard(
-                context,
-                title: 'Vehicles',
-                subtitle: 'Manage service schedules',
-                icon: Icons.directions_car_rounded,
-                color: Colors.orangeAccent,
-                route: '/vehicles',
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSmallCard(
-                      context,
-                      title: 'Subscriptions',
-                      icon: Icons.sync_rounded,
-                      color: Colors.purpleAccent,
-                      route: '/subscriptions',
-                    ),
+              _buildModernHeader(),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 20,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildSmallCard(
-                      context,
-                      title: 'Utilities',
-                      icon: Icons.power_rounded,
-                      color: Colors.greenAccent,
-                      route: '/utilities',
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildModernCard(
+                        context,
+                        title: 'Appliances',
+                        subtitle: 'Track warranty & service',
+                        icon: Icons.kitchen_rounded,
+                        color: Colors.blueAccent,
+                        route: '/appliances',
+                      ),
+                      const SizedBox(height: 20),
+                      _buildModernCard(
+                        context,
+                        title: 'Vehicles',
+                        subtitle: 'Manage service schedules',
+                        icon: Icons.directions_car_rounded,
+                        color: Colors.orangeAccent,
+                        route: '/vehicles',
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildSmallCard(
+                              context,
+                              title: 'Subscriptions',
+                              icon: Icons.sync_rounded,
+                              color: Colors.purpleAccent,
+                              route: '/subscriptions',
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildSmallCard(
+                              context,
+                              title: 'Utilities',
+                              icon: Icons.power_rounded,
+                              color: Colors.greenAccent,
+                              route: '/utilities',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _buildModernCard(
+                        context,
+                        title: 'Emergency Contacts',
+                        subtitle: 'Quick access when needed',
+                        icon: Icons.emergency_rounded,
+                        color: Colors.redAccent,
+                        route: '/emergency',
+                      ),
+                      const SizedBox(height: 30),
+                      const Text(
+                        'App Settings',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.5),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: Column(
+                              children: [
+                                _buildSettingsTile(
+                                  Icons.help_rounded,
+                                  'Help & Support',
+                                  AppColors.primaryBlue,
+                                  onTap: () => showDialog(
+                                    context: context,
+                                    builder: (_) => const HelpCenterDialog(),
+                                  ),
+                                ),
+                                _buildSettingsTile(
+                                  Icons.info_outline_rounded,
+                                  'About App',
+                                  AppColors.secondaryMint,
+                                  onTap: () => showDialog(
+                                    context: context,
+                                    builder: (_) => const AboutAppDialog(),
+                                  ),
+                                ),
+                                _buildSettingsTile(
+                                  Icons.email_outlined,
+                                  'Contact Us',
+                                  AppColors.accentPurple,
+                                  onTap: () => showDialog(
+                                    context: context,
+                                    builder: (_) => const ContactUsDialog(),
+                                  ),
+                                ),
+                                _buildSettingsTile(
+                                  Icons.menu_book_outlined,
+                                  'How to Use',
+                                  Colors.orangeAccent,
+                                  onTap: () => showDialog(
+                                    context: context,
+                                    builder: (_) => const HowToUseDialog(),
+                                  ),
+                                ),
+                                _buildSettingsTile(
+                                  Icons.logout_rounded,
+                                  'Logout',
+                                  AppColors.errorRed,
+                                  showDivider: false,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 100), // Space for bottom bar
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              _buildModernCard(
-                context,
-                title: 'Emergency Contacts',
-                subtitle: 'Quick access when needed',
-                icon: Icons.emergency_rounded,
-                color: Colors.redAccent,
-                route: '/emergency',
-              ),
-              const SizedBox(height: 30),
-              const Text(
-                'App Settings',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    _buildSettingsTile(
-                      Icons.help_rounded,
-                      'Help & Support',
-                      Colors.blueGrey,
-                      onTap: () => showDialog(
-                        context: context,
-                        builder: (_) => const HelpCenterDialog(),
-                      ),
-                    ),
-                    _buildSettingsTile(
-                      Icons.info_outline_rounded,
-                      'About App',
-                      Colors.teal,
-                      onTap: () => showDialog(
-                        context: context,
-                        builder: (_) => const AboutAppDialog(),
-                      ),
-                    ),
-                    _buildSettingsTile(
-                      Icons.email_outlined,
-                      'Contact Us',
-                      Colors.pink,
-                      onTap: () => showDialog(
-                        context: context,
-                        builder: (_) => const ContactUsDialog(),
-                      ),
-                    ),
-                    _buildSettingsTile(
-                      Icons.menu_book_outlined,
-                      'How to Use',
-                      Colors.purple,
-                      onTap: () => showDialog(
-                        context: context,
-                        builder: (_) => const HowToUseDialog(),
-                      ),
-                    ),
-                    _buildSettingsTile(
-                      Icons.logout_rounded,
-                      'Logout',
-                      Colors.redAccent,
-                      showDivider: false,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 100), // Space for bottom bar
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernHeader() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFC1F1E0).withOpacity(0.4),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Settings',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      Text(
+                        'Configure your HomeOs experience',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primaryBlue.withOpacity(0.2),
+                      width: 2,
+                    ),
+                  ),
+                  child: const UserAvatar(name: 'Sarah', radius: 22),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -181,13 +251,13 @@ class SettingsScreen extends StatelessWidget {
       child: Container(
         height: 110,
         decoration: BoxDecoration(
-          color: _getPastelColor(title),
+          color: Colors.white.withOpacity(0.4),
           borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withOpacity(0.03),
               blurRadius: 10,
-              spreadRadius: 1,
               offset: const Offset(0, 4),
             ),
           ],
@@ -205,6 +275,7 @@ class SettingsScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: color.withOpacity(0.2)),
                     ),
                     child: Icon(icon, size: 28, color: color),
                   ),
@@ -216,10 +287,10 @@ class SettingsScreen extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
                             fontSize: 17,
-                            color: Colors.grey.shade900,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -227,7 +298,8 @@ class SettingsScreen extends StatelessWidget {
                           subtitle,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey.shade600,
+                            color: AppColors.textSecondary.withOpacity(0.8),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -259,13 +331,13 @@ class SettingsScreen extends StatelessWidget {
       child: Container(
         height: 130,
         decoration: BoxDecoration(
-          color: _getPastelColor(title),
+          color: Colors.white.withOpacity(0.4),
           borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withOpacity(0.03),
               blurRadius: 10,
-              spreadRadius: 1,
               offset: const Offset(0, 4),
             ),
           ],
@@ -285,6 +357,7 @@ class SettingsScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: color.withOpacity(0.2)),
                     ),
                     child: Icon(icon, size: 24, color: color),
                   ),
@@ -292,10 +365,10 @@ class SettingsScreen extends StatelessWidget {
                   Text(
                     title,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
                       fontSize: 14,
-                      color: Colors.grey.shade900,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -347,22 +420,5 @@ class SettingsScreen extends StatelessWidget {
           ),
       ],
     );
-  }
-
-  Color _getPastelColor(String title) {
-    switch (title) {
-      case 'Appliances':
-        return Colors.blue.shade50;
-      case 'Vehicles':
-        return Colors.orange.shade50;
-      case 'Subscriptions':
-        return Colors.purple.shade50;
-      case 'Utilities':
-        return Colors.green.shade50;
-      case 'Emergency Contacts':
-        return Colors.red.shade50;
-      default:
-        return Colors.white;
-    }
   }
 }

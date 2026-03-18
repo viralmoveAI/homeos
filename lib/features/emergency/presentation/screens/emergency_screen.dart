@@ -16,25 +16,24 @@ class EmergencyScreen extends ConsumerWidget {
     return AnimatedGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text('Emergency Contacts', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.textPrimary),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        body: contactsAsync.when(
-          data: (contacts) => contacts.isEmpty
-              ? _buildEmptyState()
-              : ListView.builder(
-                  padding: const EdgeInsets.all(20),
-                  itemCount: contacts.length,
-                  itemBuilder: (context, index) => _buildContactCard(context, contacts[index]),
-                ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(child: Text('Error: $err')),
+        body: Column(
+          children: [
+            _buildModernHeader(context),
+            Expanded(
+              child: contactsAsync.when(
+                data: (contacts) => contacts.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(20),
+                        itemCount: contacts.length,
+                        itemBuilder: (context, index) =>
+                            _buildContactCard(context, contacts[index]),
+                      ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Center(child: Text('Error: $err')),
+              ),
+            ),
+          ],
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {},
@@ -45,16 +44,98 @@ class EmergencyScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildModernHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFC1F1E0).withOpacity(0.4),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.textPrimary.withOpacity(0.05),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: AppColors.textPrimary,
+                            size: 20,
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Emergency',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 52.0, top: 2),
+                    child: Text(
+                      'Emergency Contacts & Quick Access',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.emergency_rounded, size: 80, color: AppColors.textHint.withOpacity(0.3)),
+          Icon(
+            Icons.emergency_rounded,
+            size: 80,
+            color: AppColors.textHint.withOpacity(0.3),
+          ),
           const SizedBox(height: 20),
           Text(
             'No emergency contacts yet',
-            style: TextStyle(color: AppColors.textSecondary.withOpacity(0.7), fontSize: 18),
+            style: TextStyle(
+              color: AppColors.textSecondary.withOpacity(0.7),
+              fontSize: 18,
+            ),
           ),
         ],
       ),
@@ -79,8 +160,14 @@ class EmergencyScreen extends ConsumerWidget {
               backgroundColor: Colors.redAccent,
               child: Icon(Icons.person_rounded, color: Colors.white),
             ),
-            title: Text(contact.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(contact.relation, style: TextStyle(color: AppColors.textSecondary.withOpacity(0.7))),
+            title: Text(
+              contact.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(
+              contact.relation,
+              style: TextStyle(color: AppColors.textSecondary.withOpacity(0.7)),
+            ),
             trailing: IconButton(
               icon: const Icon(Icons.phone_rounded, color: Colors.redAccent),
               onPressed: () {}, // Implement call logic

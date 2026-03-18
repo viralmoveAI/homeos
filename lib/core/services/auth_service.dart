@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:emailjs/emailjs.dart' as emailjs;
 import '../../firebase_options.dart';
 import 'dart:math';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -65,48 +66,56 @@ class AuthService {
     }
   }
 
-  // Sign in with Google (v7.2.0 Compatible)
+  // Sign in with Google (v7.2.0 Compatible + Web Fix)
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      // 1. Trigger the authenticate flow (replaces signIn in v7)
-      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
+      UserCredential userCredential;
 
-      // 2. Obtain auth details (idToken)
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      if (kIsWeb) {
+        // Web optimized flow
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
+        userCredential = await _auth.signInWithPopup(googleProvider);
+      } else {
+        // 1. Trigger the authenticate flow (replaces signIn in v7)
+        final GoogleSignInAccount googleUser = await _googleSignIn
+            .authenticate();
 
-      // 3. Obtain access token via authorizationClient
-      final clientAuth = await googleUser.authorizationClient.authorizeScopes([
-        'email',
-        'profile',
-        'openid',
-      ]);
+        // 2. Obtain auth details (idToken)
+        final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
-      // 4. Create Firebase credential
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: clientAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+        // 3. Obtain access token via authorizationClient
+        final clientAuth = await googleUser.authorizationClient.authorizeScopes(
+          ['email', 'profile', 'openid'],
+        );
 
-      // 5. Sign in to Firebase
-      final UserCredential userCredential = await _auth.signInWithCredential(
-        credential,
-      );
+        // 4. Create Firebase credential
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: clientAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        // 5. Sign in to Firebase
+        userCredential = await _auth.signInWithCredential(credential);
+      }
 
       // 6. Save user metadata for new Google users
       if (userCredential.user != null &&
           userCredential.additionalUserInfo?.isNewUser == true) {
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'firstName': googleUser.displayName?.split(' ').first ?? '',
-          'familyName':
-              googleUser.displayName?.split(' ') != null &&
-                  googleUser.displayName!.split(' ').length > 1
-              ? googleUser.displayName!.split(' ').last
+        final user = userCredential.user!;
+        final displayName = user.displayName ?? '';
+
+        await _firestore.collection('users').doc(user.uid).set({
+          'firstName': displayName.split(' ').first,
+          'familyName': displayName.split(' ').length > 1
+              ? displayName.split(' ').last
               : '',
-          'email': googleUser.email,
+          'email': user.email ?? '',
           'phoneNumber': '',
           'createdAt': FieldValue.serverTimestamp(),
           'setupComplete': false,
-          'photoUrl': googleUser.photoUrl,
+          'photoUrl': user.photoURL,
         }, SetOptions(merge: true));
       }
 
@@ -114,6 +123,7 @@ class AuthService {
     } on FirebaseAuthException {
       rethrow;
     } catch (e) {
+      print('Error in Google Sign In: $e');
       rethrow;
     }
   }
@@ -121,6 +131,16 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     await Future.wait([_auth.signOut(), _googleSignIn.signOut()]);
+  }
+
+  // Update Password
+  Future<void> updatePassword(String newPassword) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await user.updatePassword(newPassword);
+    } else {
+      throw Exception('No user signed in');
+    }
   }
 
   // ─── Family Invitations ──────────────────────────────────────────────────

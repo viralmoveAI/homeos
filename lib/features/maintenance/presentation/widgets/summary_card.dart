@@ -17,19 +17,16 @@ class SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pastelColor = _getPastelColor();
-    final darkColor = _getDarkColor();
-
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
-        color: pastelColor,
+        color: Colors.white.withOpacity(0.5),
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: color.withOpacity(0.2), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
-            spreadRadius: 1,
             offset: const Offset(0, 4),
           ),
         ],
@@ -38,47 +35,35 @@ class SummaryCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: darkColor, size: 20),
+            child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(height: 12),
           Text(
             value,
             style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: darkColor,
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textPrimary.withOpacity(0.9),
+              letterSpacing: -1,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             title,
             style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: darkColor.withOpacity(0.8),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: color.withOpacity(0.8),
+              letterSpacing: 0.2,
             ),
           ),
         ],
       ),
     );
-  }
-
-  Color _getPastelColor() {
-    if (title.contains('Overdue')) return Colors.red.shade50;
-    if (title.contains('Upcoming')) return Colors.orange.shade50;
-    if (title.contains('Completed')) return Colors.green.shade50;
-    return AppColors.surfaceWhite;
-  }
-
-  Color _getDarkColor() {
-    if (title.contains('Overdue')) return Colors.red.shade900;
-    if (title.contains('Upcoming')) return Colors.orange.shade900;
-    if (title.contains('Completed')) return Colors.green.shade900;
-    return color;
   }
 }

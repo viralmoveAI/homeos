@@ -9,7 +9,9 @@ import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/database_service.dart';
 import '../../../../shared/widgets/animated_gradient_background.dart';
 import '../../../../shared/widgets/user_avatar.dart';
+import '../../../../core/providers/auth_providers.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -19,11 +21,10 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  final TextEditingController _nameController = TextEditingController(
-    text: 'Sarah Jackson',
-  );
-  final String _email = 'Jackson.Sarah@mail.com';
-  String _role = 'Manager';
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  String _role = 'Member';
+  bool _isInitialized = false;
 
   bool _healthAlerts = true;
   bool _pollNotifications = false;
@@ -37,6 +38,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -70,6 +72,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profileAsync = ref.watch(userProfileProvider);
+
     return AnimatedGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.grey[50]?.withOpacity(0.4),
@@ -91,48 +95,83 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-          child: Column(
-            children: [
-              _buildProfileHeader(),
-              const SizedBox(height: 30),
-              _buildUserDetailsCard(),
-              const SizedBox(height: 20),
-              _buildAppPreferencesCard(),
-              const SizedBox(height: 20),
-              _buildAppCustomizationCard(),
-              const SizedBox(height: 20),
-              _buildFamilyMembersSection(),
-              const SizedBox(height: 20),
-              _buildAccountSecuritySection(),
-              const SizedBox(height: 30),
-              _buildAccountActions(),
-              const SizedBox(height: 40),
-              _buildLogoutSection(),
-            ],
+        body: profileAsync.when(
+          data: (profile) {
+            // Update controllers ONLY on initial load
+            if (profile != null && !_isInitialized) {
+              final fullName =
+                  '${profile['firstName'] ?? ''} ${profile['lastName'] ?? ''}'
+                      .trim();
+              _nameController.text = fullName;
+              _emailController.text = profile['email'] ?? '';
+              _role = profile['role'] ?? 'Member';
+              _isInitialized = true;
+            }
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+              child: Column(
+                children: [
+                  _buildProfileHeader(profile),
+                  const SizedBox(height: 30),
+                  _buildUserDetailsCard(profile),
+                  const SizedBox(height: 20),
+                  _buildAppPreferencesCard(),
+                  const SizedBox(height: 20),
+                  _buildAppCustomizationCard(),
+                  const SizedBox(height: 20),
+                  _buildFamilyMembersSection(),
+                  const SizedBox(height: 20),
+                  _buildAccountSecuritySection(),
+                  const SizedBox(height: 30),
+                  _buildAccountActions(),
+                  const SizedBox(height: 40),
+                  _buildLogoutSection(),
+                ],
+              ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                const SizedBox(height: 16),
+                Text('Error loading profile: $err'),
+                TextButton(
+                  onPressed: () => ref.invalidate(userProfileProvider),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(Map<String, dynamic>? profile) {
+    final firstName = profile?['firstName'] ?? 'User';
+    final role = profile?['role'] ?? 'Member';
+
     return Column(
       children: [
-        const UserAvatar(name: 'Sarah', radius: 60),
+        UserAvatar(name: firstName, radius: 60),
         const SizedBox(height: 16),
-        const Text(
-          'Sarah J.',
-          style: TextStyle(
+        Text(
+          profile != null
+              ? '${profile['firstName'] ?? ''} ${profile['lastName'] ?? ''}'
+              : 'Loading...',
+          style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
         ),
-        const Text(
-          'Household Admin',
-          style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+        Text(
+          role,
+          style: const TextStyle(fontSize: 16, color: AppColors.textSecondary),
         ),
         TextButton(
           onPressed: () {},
@@ -148,16 +187,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildUserDetailsCard() {
+  Widget _buildUserDetailsCard(Map<String, dynamic>? profile) {
     return _SettingsCard(
       title: 'User Profile Details',
       child: Column(
         children: [
           _buildEditableField('Full Name', _nameController),
-          _buildInfoField('Email', _email),
+          _buildInfoField('Email', _emailController.text),
           _buildRoleDropdown(),
+          const SizedBox(height: 16),
+          _buildSaveButton(profile),
         ],
       ),
+    );
+  }
+
+  Widget _buildSaveButton(Map<String, dynamic>? profile) {
+    return ElevatedButton(
+      onPressed: () async {
+        final names = _nameController.text.split(' ');
+        final firstName = names.isNotEmpty ? names[0] : '';
+        final lastName = names.length > 1 ? names.sublist(1).join(' ') : '';
+
+        try {
+          await _dbService.saveUserProfile({
+            'firstName': firstName,
+            'lastName': lastName,
+            'role': _role,
+          });
+          Fluttertoast.showToast(msg: "Profile updated!");
+        } catch (e) {
+          Fluttertoast.showToast(msg: "Error: $e");
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 45),
+        backgroundColor: AppColors.primaryBlue,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: const Text('Update Profile'),
     );
   }
 
@@ -184,7 +253,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _buildActionTile(
             'Change Password',
             Icons.lock_outline_rounded,
-            () {},
+            _showChangePasswordDialog,
           ),
         ],
       ),
@@ -192,8 +261,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildAppCustomizationCard() {
-    final currentTheme = ref.watch(appThemeNavigatorProvider);
-
     return _SettingsCard(
       title: 'App Customization - Color Change Option',
       child: Column(
@@ -204,51 +271,67 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 100,
-            child: GridView.count(
-              crossAxisCount: 3,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              physics: const NeverScrollableScrollPhysics(),
-              children: AppThemeMode.values.map((mode) {
-                final isSelected = currentTheme == mode;
-                return GestureDetector(
-                  onTap: () => ref
-                      .read(appThemeNavigatorProvider.notifier)
-                      .setTheme(mode),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: mode.gradient,
-                            borderRadius: BorderRadius.circular(12),
-                            border: isSelected
-                                ? Border.all(
-                                    color: AppColors.textPrimary,
-                                    width: 2,
-                                  )
-                                : null,
-                          ),
-                          child: isSelected
-                              ? const Icon(Icons.check, color: Colors.white)
+          const SizedBox(height: 16),
+          GridView.count(
+            crossAxisCount: 3,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: AppThemeMode.values.map((mode) {
+              final themeState = ref.watch(appThemeNavigatorProvider);
+              final isSelected = themeState.mode == mode;
+
+              // Use the actual current custom colors if it's the custom mode
+              final previewState = mode == AppThemeMode.custom
+                  ? themeState
+                  : ThemeState(mode: mode);
+
+              return GestureDetector(
+                onTap: () {
+                  if (mode == AppThemeMode.custom) {
+                    _showCustomColorPicker();
+                  } else {
+                    ref.read(appThemeNavigatorProvider.notifier).setTheme(mode);
+                  }
+                },
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: previewState.gradient,
+                          borderRadius: BorderRadius.circular(12),
+                          border: isSelected
+                              ? Border.all(
+                                  color: AppColors.textPrimary,
+                                  width: 2,
+                                )
                               : null,
                         ),
+                        child: isSelected
+                            ? const Icon(Icons.check, color: Colors.white)
+                            : (mode == AppThemeMode.custom
+                                  ? const Icon(
+                                      Icons.colorize,
+                                      color: Colors.white,
+                                      size: 16,
+                                    )
+                                  : null),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        mode.displayName,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      mode.displayName,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -401,12 +484,170 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  void _showCustomColorPicker() {
+    final themeState = ref.read(appThemeNavigatorProvider);
+    Color color1 = themeState.customColors[0];
+    Color color2 = themeState.customColors[1];
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Custom Gradient'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Pick First Color'),
+              const SizedBox(height: 10),
+              ColorPicker(
+                pickerColor: color1,
+                onColorChanged: (c) => color1 = c,
+                pickerAreaHeightPercent: 0.5,
+                enableAlpha: false,
+                displayThumbColor: true,
+              ),
+              const Divider(),
+              const Text('Pick Second Color'),
+              const SizedBox(height: 10),
+              ColorPicker(
+                pickerColor: color2,
+                onColorChanged: (c) => color2 = c,
+                pickerAreaHeightPercent: 0.5,
+                enableAlpha: false,
+                displayThumbColor: true,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              ref.read(appThemeNavigatorProvider.notifier).setCustomColors([
+                color1,
+                color2,
+              ]);
+              Navigator.pop(context);
+            },
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSettingsTile(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       leading: Icon(icon, color: AppColors.textSecondary),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
       onTap: onTap,
+    );
+  }
+
+  void _showChangePasswordDialog() {
+    final passwordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Change Password'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Enter your new password below.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'New Password',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  obscureText: true,
+                  validator: (v) => v == null || v.length < 6
+                      ? 'Minimum 6 characters required'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: confirmPasswordController,
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  obscureText: true,
+                  validator: (v) => v != passwordController.text
+                      ? 'Passwords do not match'
+                      : null,
+                ),
+                if (isLoading)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 16.0),
+                    child: CircularProgressIndicator(),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: isLoading
+                  ? null
+                  : () async {
+                      if (formKey.currentState!.validate()) {
+                        setDialogState(() => isLoading = true);
+                        try {
+                          await _authService.updatePassword(
+                            passwordController.text.trim(),
+                          );
+                          if (mounted) {
+                            Navigator.pop(context);
+                            Fluttertoast.showToast(
+                              msg: "Password updated successfully!",
+                              backgroundColor: Colors.green,
+                            );
+                          }
+                        } catch (e) {
+                          Fluttertoast.showToast(
+                            msg: "Error: ${e.toString()}",
+                            backgroundColor: Colors.red,
+                          );
+                        } finally {
+                          setDialogState(() => isLoading = false);
+                        }
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('UPDATE'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

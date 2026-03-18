@@ -8,6 +8,8 @@ class FamilyHubService {
   _targetUid; // The UID of the family (either current user or their admin)
   final String _currentUid; // The UID of the person performing the action
 
+  String get currentUid => _currentUid;
+
   FamilyHubService({required String targetUid, required String currentUid})
     : _targetUid = targetUid,
       _currentUid = currentUid;
@@ -30,7 +32,11 @@ class FamilyHubService {
     return await taskSnapshot.ref.getDownloadURL();
   }
 
-  Future<void> createPost({required String content, String? imageUrl}) async {
+  Future<void> createPost({
+    required String content,
+    String? imageUrl,
+    String? feeling,
+  }) async {
     final userData = await _db.collection('users').doc(_currentUid).get();
     final name = userData.data()?['firstName'] ?? 'User';
 
@@ -39,6 +45,7 @@ class FamilyHubService {
       'authorName': name,
       'content': content,
       'imageUrl': imageUrl,
+      'feeling': feeling,
       'reactions': {'❤️': [], '👍': [], '😂': [], '😮': [], '😢': []},
       'commentCount': 0,
       'createdAt': FieldValue.serverTimestamp(),
@@ -137,7 +144,7 @@ class FamilyHubService {
     return _familyDoc
         .collection('chatGroups')
         .where('members', arrayContains: _currentUid)
-        .orderBy('lastMessageAt', descending: true)
+        // .orderBy('lastMessageAt', descending: true)
         .snapshots();
   }
 
@@ -166,6 +173,17 @@ class FamilyHubService {
 
   Future<void> deleteChatGroup(String groupId) async {
     await _familyDoc.collection('chatGroups').doc(groupId).delete();
+  }
+
+  Future<void> addMembersToGroup(
+    String groupId,
+    List<String> newMembers,
+  ) async {
+    if (newMembers.isEmpty) return;
+
+    await _familyDoc.collection('chatGroups').doc(groupId).update({
+      'members': FieldValue.arrayUnion(newMembers),
+    });
   }
 
   // ─── Messages ─────────────────────────────────────────────────────────────

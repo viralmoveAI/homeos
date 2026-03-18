@@ -24,9 +24,17 @@ final effectiveUidProvider = Provider<String?>((ref) {
   final user = ref.watch(authStateProvider).value;
   if (user == null) return null;
 
-  final profile = ref.watch(userProfileProvider).value;
-  // While profile is loading or if it's not found yet, use the current user's UID
-  // This avoids a complete block while the first profile fetch happens
-  final familyAdminUid = profile?['familyAdminUid'] as String?;
-  return familyAdminUid ?? user.uid;
+  final profileAsync = ref.watch(userProfileProvider);
+
+  // Wait for the profile to load to ensure we have the correct familyAdminUid if it exists.
+  // This prevents creating data in the user's own collection before we know they belong to a family.
+  return profileAsync.maybeWhen(
+    data: (profile) {
+      final familyAdminUid = profile?['familyAdminUid'] as String?;
+      return familyAdminUid ?? user.uid;
+    },
+    // While loading or in error, we return null to suspend dependent services
+    // until we are sure about the target UID.
+    orElse: () => null,
+  );
 });

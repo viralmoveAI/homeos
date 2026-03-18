@@ -155,15 +155,7 @@ class MainShell extends StatelessWidget {
               backgroundColor: Colors.transparent,
               builder: (_) => const ChatGroupsSheet(),
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Image.asset(
-                'assets/images/chat_icon_3d.png',
-                width: 32,
-                height: 32,
-                fit: BoxFit.contain,
-              ),
-            ),
+            child: Icon(Icons.chat, color: Colors.white),
           ),
         ),
       );

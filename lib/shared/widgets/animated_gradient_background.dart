@@ -36,8 +36,8 @@ class _AnimatedGradientBackgroundState
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(appThemeNavigatorProvider);
-    final themeGradient = themeMode.gradient;
+    final themeState = ref.watch(appThemeNavigatorProvider);
+    final themeGradient = themeState.gradient;
     final size = MediaQuery.of(context).size;
 
     // Extract colors for the aura effect

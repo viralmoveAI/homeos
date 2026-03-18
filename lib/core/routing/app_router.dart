@@ -5,6 +5,7 @@ import '../../shared/widgets/main_shell.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/family_hub/presentation/family_hub_screen.dart';
+import '../../features/family_hub/presentation/memories_screen.dart';
 
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/onboarding/presentation/setup_quiz_screen.dart';
@@ -14,6 +15,7 @@ import '../../features/onboarding/presentation/success_screen.dart';
 import '../../features/maintenance/presentation/screens/maintenance_screen.dart';
 
 import '../../features/vault/presentation/screens/vault_screen.dart';
+import '../../features/meals/presentation/screens/meal_planning_screen.dart';
 import '../../features/ai_assistant/presentation/screens/ai_assistant_screen.dart';
 import '../../features/appliances/presentation/screens/appliance_screen.dart';
 import '../../features/vehicles/presentation/screens/vehicle_screen.dart';
@@ -62,6 +64,10 @@ final appRouter = GoRouter(
       builder: (context, state) => const VehicleScreen(),
     ),
     GoRoute(
+      path: '/meals',
+      builder: (context, state) => const MealPlanningScreen(),
+    ),
+    GoRoute(
       path: '/subscriptions',
       builder: (context, state) => const SubscriptionScreen(),
     ),
@@ -72,6 +78,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/emergency',
       builder: (context, state) => const EmergencyScreen(),
+    ),
+    GoRoute(
+      path: '/memories',
+      builder: (context, state) => const MemoriesScreen(),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {

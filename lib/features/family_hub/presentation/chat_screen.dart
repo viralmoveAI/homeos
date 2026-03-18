@@ -9,7 +9,6 @@ import '../../../shared/widgets/animated_gradient_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/family_hub_providers.dart';
 import '../../../core/providers/auth_providers.dart';
-import '../../../core/services/database_service.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -579,7 +578,6 @@ class _GroupInfoSheet extends ConsumerStatefulWidget {
 }
 
 class _GroupInfoSheetState extends ConsumerState<_GroupInfoSheet> {
-  final _dbService = DatabaseService();
   final _firestore = FirebaseFirestore.instance;
 
   Future<void> _deleteGroup() async {
@@ -652,22 +650,63 @@ class _GroupInfoSheetState extends ConsumerState<_GroupInfoSheet> {
             ],
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Members:',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: AppColors.textSecondary,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Members:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                    ),
+                    builder: (context) {
+                      return StreamBuilder<DocumentSnapshot>(
+                        stream: _firestore
+                            .collection('users')
+                            .doc(ref.read(effectiveUidProvider))
+                            .collection('chatGroups')
+                            .doc(widget.groupId)
+                            .snapshots(),
+                        builder: (context, snap) {
+                          if (!snap.hasData) return const SizedBox();
+                          final data =
+                              snap.data!.data() as Map<String, dynamic>? ?? {};
+                          final currentMembers = List<String>.from(
+                            data['members'] ?? [],
+                          );
+                          return _AddGroupMemberSheet(
+                            groupId: widget.groupId,
+                            currentMembers: currentMembers,
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+                icon: const Icon(Icons.person_add_alt_1, size: 20),
+                label: const Text('Add Member'),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: FutureBuilder<DocumentSnapshot>(
-              future: _firestore
-                  .collection('family_hub')
-                  .doc('default_family')
+            child: StreamBuilder<DocumentSnapshot>(
+              stream: _firestore
+                  .collection('users')
+                  .doc(ref.watch(effectiveUidProvider))
                   .collection('chatGroups')
                   .doc(widget.groupId)
-                  .get(),
+                  .snapshots(),
               builder: (context, groupSnap) {
                 if (groupSnap.connectionState == ConnectionState.waiting)
                   return const Center(child: CircularProgressIndicator());
@@ -677,22 +716,20 @@ class _GroupInfoSheetState extends ConsumerState<_GroupInfoSheet> {
                 final data = groupSnap.data!.data() as Map<String, dynamic>;
                 final members = List<String>.from(data['members'] ?? []);
 
-                return StreamBuilder<QuerySnapshot>(
-                  stream: _dbService.getFamilyMembers(),
-                  builder: (context, usersSnap) {
-                    if (usersSnap.connectionState == ConnectionState.waiting)
-                      return const SizedBox();
-                    if (!usersSnap.hasData) return const SizedBox();
-
-                    final userDocs = usersSnap.data!.docs
-                        .where((doc) => members.contains(doc.id))
-                        .toList();
-
-                    return ListView.builder(
-                      itemCount: userDocs.length,
-                      itemBuilder: (context, index) {
+                return ListView.builder(
+                  itemCount: members.length,
+                  itemBuilder: (context, index) {
+                    final memberId = members[index];
+                    return FutureBuilder<DocumentSnapshot>(
+                      future: _firestore
+                          .collection('users')
+                          .doc(memberId)
+                          .get(),
+                      builder: (context, userSnap) {
+                        if (!userSnap.hasData) return const SizedBox();
                         final userData =
-                            userDocs[index].data() as Map<String, dynamic>;
+                            userSnap.data!.data() as Map<String, dynamic>? ??
+                            {};
                         final name = userData['firstName'] ?? 'User';
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
@@ -701,7 +738,7 @@ class _GroupInfoSheetState extends ConsumerState<_GroupInfoSheet> {
                               0.2,
                             ),
                             child: Text(
-                              name[0].toUpperCase(),
+                              name.isNotEmpty ? name[0].toUpperCase() : 'U',
                               style: const TextStyle(
                                 color: AppColors.primaryBlue,
                               ),
@@ -719,6 +756,177 @@ class _GroupInfoSheetState extends ConsumerState<_GroupInfoSheet> {
                   },
                 );
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddGroupMemberSheet extends ConsumerStatefulWidget {
+  final String groupId;
+  final List<String> currentMembers;
+
+  const _AddGroupMemberSheet({
+    required this.groupId,
+    required this.currentMembers,
+  });
+
+  @override
+  ConsumerState<_AddGroupMemberSheet> createState() =>
+      _AddGroupMemberSheetState();
+}
+
+class _AddGroupMemberSheetState extends ConsumerState<_AddGroupMemberSheet> {
+  final Set<String> _selectedMembers = {};
+  bool _loading = false;
+
+  Future<void> _addMembers() async {
+    if (_selectedMembers.isEmpty) return;
+    setState(() => _loading = true);
+    await ref
+        .read(familyHubServiceProvider)
+        .addMembersToGroup(widget.groupId, _selectedMembers.toList());
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Add Members',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ref
+              .watch(familyMembersProvider)
+              .when(
+                data: (members) {
+                  final availableMembers = members
+                      .where((m) => !widget.currentMembers.contains(m['uid']))
+                      .toList();
+
+                  if (availableMembers.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Text(
+                        'No new members to add.',
+                        style: TextStyle(color: AppColors.textHint),
+                      ),
+                    );
+                  }
+
+                  return ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.4,
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: availableMembers.length,
+                      itemBuilder: (context, index) {
+                        final memberData = availableMembers[index];
+                        final memberId = memberData['uid'] as String;
+                        final memberName =
+                            memberData['name'] ??
+                            memberData['firstName'] ??
+                            'User';
+
+                        return CheckboxListTile(
+                          title: Text(memberName),
+                          value: _selectedMembers.contains(memberId),
+                          onChanged: (bool? value) {
+                            setState(() {
+                              if (value == true) {
+                                _selectedMembers.add(memberId);
+                              } else {
+                                _selectedMembers.remove(memberId);
+                              }
+                            });
+                          },
+                          activeColor: AppColors.primaryBlue,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                        );
+                      },
+                    ),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, st) => Text(
+                  'Error: $e',
+                  style: const TextStyle(color: AppColors.errorRed),
+                ),
+              ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primaryBlue, AppColors.accentPurple],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: _loading || _selectedMembers.isEmpty
+                    ? null
+                    : _addMembers,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: _loading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Add to Group',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
             ),
           ),
         ],

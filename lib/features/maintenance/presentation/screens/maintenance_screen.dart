@@ -52,7 +52,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
         backgroundColor: Colors.transparent,
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: Padding(
-          padding: const EdgeInsets.only(bottom: 100.0),
+          padding: const EdgeInsets.only(bottom: 150.0),
           child: FloatingActionButton.extended(
             onPressed: _showAddTask,
             backgroundColor: AppColors.primaryBlue,
@@ -86,64 +86,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
 
               return Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Maintenance Calendar',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Keep your home in top shape',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textSecondary.withOpacity(0.8),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: SummaryCard(
-                            title: 'Overdue',
-                            value: overdue.toString(),
-                            color: AppColors.errorRed,
-                            icon: Icons.warning_amber_rounded,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: SummaryCard(
-                            title: 'Upcoming',
-                            value: upcoming.toString(),
-                            color: AppColors.warningOrange,
-                            icon: Icons.upcoming_rounded,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: SummaryCard(
-                            title: 'Completed',
-                            value: completed.toString(),
-                            color: AppColors.successGreen,
-                            icon: Icons.check_circle_outline_rounded,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
+                  _buildModernHeader(overdue, upcoming, completed),
                   Expanded(
                     child: Container(
                       width: double.infinity,
@@ -180,10 +123,14 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
                                     16,
                                   ),
                                   child: Container(
-                                    height: 45,
+                                    height: 48,
                                     decoration: BoxDecoration(
-                                      color: Colors.grey.withOpacity(0.12),
-                                      borderRadius: BorderRadius.circular(16),
+                                      color: Colors.white.withOpacity(0.4),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.5),
+                                        width: 1,
+                                      ),
                                     ),
                                     child: TabBar(
                                       controller: _tabController,
@@ -248,6 +195,112 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen>
             },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, s) => Center(child: Text('Error: $e')),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernHeader(int overdue, int upcoming, int completed) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Maintenance',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        Text(
+                          'Keep your home in top shape',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryBlue.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.primaryBlue.withOpacity(0.2),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.calendar_today_rounded,
+                        color: AppColors.primaryBlue,
+                        size: 26,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SummaryCard(
+                        title: 'Overdue',
+                        value: overdue.toString(),
+                        color: AppColors.errorRed,
+                        icon: Icons.warning_amber_rounded,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SummaryCard(
+                        title: 'Upcoming',
+                        value: upcoming.toString(),
+                        color: AppColors.warningOrange,
+                        icon: Icons.upcoming_rounded,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SummaryCard(
+                        title: 'Completed',
+                        value: completed.toString(),
+                        color: AppColors.successGreen,
+                        icon: Icons.check_circle_outline_rounded,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
