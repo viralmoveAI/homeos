@@ -143,6 +143,17 @@ class AuthService {
     }
   }
 
+  // Send Password Reset Email
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException {
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // ─── Family Invitations ──────────────────────────────────────────────────
 
   /// Invites a family member by creating a Firebase Auth account for them.

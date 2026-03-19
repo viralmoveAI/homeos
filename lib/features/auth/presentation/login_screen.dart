@@ -174,7 +174,26 @@ class _LoginScreenState extends State<LoginScreen>
                                   icon: Icons.lock_outline,
                                   obscureText: true,
                                 ),
-                                const SizedBox(height: 32),
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(
+                                    onPressed: () => context.push('/forgot-password'),
+                                    style: TextButton.styleFrom(
+                                      visualDensity: VisualDensity.compact,
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    child: Text(
+                                      'Forgot Password ?',
+                                      style: TextStyle(
+                                        color: AppColors.primaryBlue.withOpacity(0.8),
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
 
                                 // Glowing Gradient Button
                                 Container(

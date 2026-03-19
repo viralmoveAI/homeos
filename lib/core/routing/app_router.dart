@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../shared/widgets/main_shell.dart';
 
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/family_hub/presentation/family_hub_screen.dart';
 import '../../features/family_hub/presentation/memories_screen.dart';
@@ -43,6 +44,10 @@ final appRouter = GoRouter(
       builder: (context, state) => const ProfileScreen(),
     ),
     GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
     GoRoute(
       path: '/setup-quiz',
       builder: (context, state) => const SetupQuizScreen(),
